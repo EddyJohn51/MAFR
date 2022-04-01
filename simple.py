@@ -67,13 +67,18 @@ oven_img = oven_img.resize(((oven_img.width//blockSize)*blockSize,(oven_img.heig
 
 auw_img = Image.open('auwaaz.png')
 auw_img = ImageOps.grayscale(auw_img)
-auw_img = auw_img.resize(((auw_img.width//blockSize)*blockSize,(auw_img.height//blockSize)*blockSize))
 
+
+recon_img = Image.open('cmwany11.png')
+recon_img = ImageOps.grayscale(recon_img)
+recon_img = recon_img.resize(((recon_img.width//blockSize)*blockSize,(recon_img.height//blockSize)*blockSize))
 
 tile_matrix = imageToMatrix(src_img,blockSize)
 
 oven_matrix = imageToMatrix(oven_img,blockSize)
 auw_matrix = imageToMatrix(auw_img,blockSize)
+
+recon_matrix = np.array(recon_img)
 
 tile_matrix = np.concatenate((tile_matrix,oven_matrix))
 tile_matrix = np.concatenate((tile_matrix,auw_matrix))
@@ -84,26 +89,34 @@ print(tile_matrix)
 #print('Samples: ' + str(n_samples))
 #print('Features: ' + str(n_features))
 
-n_components = 24
+n_components = 32
 
-print("EXTRACTING THE TOP %d %s..." % (n_components, 'Non-negative components - NMF'))
+print("TRAINING SET: EXTRACTING THE TOP %d %s..." % (n_components, 'Non-negative components - NMF'))
 #t0 = time()
 estim = decomposition.NMF(n_components=n_components, init='random', random_state=0, max_iter=4000)
 w = estim.fit_transform(tile_matrix)
+h = estim.components_
 #train_time = (time() - t0)
 
 #print("Finished in %0.3fs" % train_time)
 print(f'ERROR: {estim.reconstruction_err_}')
 
-h = estim.components_
+print("TEST IMAGE: GETTING W...")
+estim2 = decomposition.NMF(n_components=n_components, init='random', random_state=0, max_iter=4000)
+w2 = estim.fit_transform(recon_matrix)
+
 r_matrix = estim.inverse_transform(w)
+
+test_recon = np.matmul(w2,h)
 
 #print(recon)
 
 print(r_matrix)
 
-result_img = matrixToImage(r_matrix,src_img.width//blockSize, src_img.height//blockSize)
-result_img.save("recon.png")
+#result_img = matrixToImage(test_recon,src_img.width//blockSize, src_img.height//blockSize)
+result_img = Image.fromarray(test_recon)
+result_img = result_img.convert('L')
+result_img.save("recon.jpg")
 
 pattern_img = matrixToImage(h,1, len(h))
 pattern_img.save("patterns.png")
