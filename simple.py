@@ -12,6 +12,11 @@ from sklearn import decomposition
 from skimage import color, io, img_as_ubyte
 
 
+#TODO:
+#Append new tiles to matrix
+#Run NMF
+#Reconstruct separate image with computed patterns
+
 
 def imageToMatrix(image, size):
 	tiles = []
@@ -56,10 +61,24 @@ src_img = ImageOps.grayscale(src_img)
 src_img = src_img.resize(((src_img.width//blockSize)*blockSize,(src_img.height//blockSize)*blockSize))
 print(src_img.size)
 
+oven_img = Image.open('oven.png')
+oven_img = ImageOps.grayscale(oven_img)
+oven_img = oven_img.resize(((oven_img.width//blockSize)*blockSize,(oven_img.height//blockSize)*blockSize))
+
+auw_img = Image.open('auwaaz.png')
+auw_img = ImageOps.grayscale(auw_img)
+auw_img = auw_img.resize(((auw_img.width//blockSize)*blockSize,(auw_img.height//blockSize)*blockSize))
+
 
 tile_matrix = imageToMatrix(src_img,blockSize)
-print(tile_matrix)
 
+oven_matrix = imageToMatrix(oven_img,blockSize)
+auw_matrix = imageToMatrix(auw_img,blockSize)
+
+tile_matrix = np.concatenate((tile_matrix,oven_matrix))
+tile_matrix = np.concatenate((tile_matrix,auw_matrix))
+
+print(tile_matrix)
 
 #n_samples, n_features = tile_matrix.shape
 #print('Samples: ' + str(n_samples))
